@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="37b4e5a8-0fd5-477e-8230-5e1178d34d9f" name="Default Changelist" comment="" />
+    <list default="true" id="37b4e5a8-0fd5-477e-8230-5e1178d34d9f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Uebung_02.py" beforeDir="false" afterPath="$PROJECT_DIR$/Uebung_02.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -9,6 +12,13 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="hiddenUrls">
+      <set>
+        <option value="https://github.com/Cc-bugwriter/NLP.git" />
+      </set>
+    </option>
   </component>
   <component name="ProjectId" id="1bRFxpOaAg7J0B0KiUWg8qCqv4Z" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -19,7 +29,48 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Uebung_02.py" />
+  </component>
+  <component name="RunManager">
+    <configuration name="Uebung_02" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
+      <module name="Uebung_02" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="C:\Anaconda3\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Uebung_02.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python" singleton="false">
+      <module name="Uebung_02" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Anaconda3\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Uebung_02.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="true" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -35,9 +86,25 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="310" y="136" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1588587329302">
+    <state x="310" y="136" width="1086" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1588599158459">
       <screen x="0" y="0" width="1707" height="960" />
     </state>
-    <state x="310" y="136" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1707.960@0.0.1707.960" timestamp="1588587329302" />
+    <state x="310" y="136" width="1086" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1707.960@0.0.1707.960" timestamp="1588599158459" />
+    <state x="635" y="197" key="#com.intellij.ide.macro.MacrosDialog" timestamp="1588591424288">
+      <screen x="0" y="0" width="1707" height="960" />
+    </state>
+    <state x="635" y="197" key="#com.intellij.ide.macro.MacrosDialog/0.0.1707.960@0.0.1707.960" timestamp="1588591424288" />
+    <state x="635" y="247" key="FileChooserDialogImpl" timestamp="1588591419618">
+      <screen x="0" y="0" width="1707" height="960" />
+    </state>
+    <state x="635" y="247" key="FileChooserDialogImpl/0.0.1707.960@0.0.1707.960" timestamp="1588591419618" />
+    <state x="538" y="305" key="com.intellij.ide.util.TipDialog" timestamp="1588591355494">
+      <screen x="0" y="0" width="1707" height="960" />
+    </state>
+    <state x="538" y="305" key="com.intellij.ide.util.TipDialog/0.0.1707.960@0.0.1707.960" timestamp="1588591355494" />
+    <state x="516" y="206" key="search.everywhere.popup" timestamp="1588598138766">
+      <screen x="0" y="0" width="1707" height="960" />
+    </state>
+    <state x="516" y="206" key="search.everywhere.popup/0.0.1707.960@0.0.1707.960" timestamp="1588598138766" />
   </component>
 </project>

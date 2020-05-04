@@ -205,13 +205,13 @@ if __name__ == '__main__':
 
     Perceptron = Perceptron()
     # before Training
-    Loss_before = Perceptron.loss_function(X=X_test, y=Y_test)
-    acc_before = Perceptron.evaluation(X=X_test, y=Y_test)
+    Loss_before = Perceptron.loss_function(X=X_dev, y=Y_dev)
+    acc_before = Perceptron.evaluation(X=X_dev, y=Y_dev)
     # Training
-    Perceptron.SGD(X=X_train, y=Y_train, alfa=0.003, size=10, epoch=100)
+    Perceptron.SGD(X=X_train, y=Y_train, alfa=0.003, size=10, epoch=800)
     # after Training
-    Loss_after = Perceptron.loss_function(X=X_test, y=Y_test)
-    acc_after = Perceptron.evaluation(X=X_test, y=Y_test)
+    Loss_after = Perceptron.loss_function(X=X_dev, y=Y_dev)
+    acc_after = Perceptron.evaluation(X=X_dev, y=Y_dev)
     print('---------------')
     print('accuracy before : %f' % acc_before)
     print('Loss before : %f' % Loss_before)
