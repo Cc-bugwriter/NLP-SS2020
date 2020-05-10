@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="37b4e5a8-0fd5-477e-8230-5e1178d34d9f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uebung_02.py" beforeDir="false" afterPath="$PROJECT_DIR$/Uebung_02.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,6 +35,9 @@
       <module name="Uebung_02" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="C:\Anaconda3\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
@@ -98,10 +100,10 @@
       <screen x="0" y="0" width="1707" height="960" />
     </state>
     <state x="635" y="247" key="FileChooserDialogImpl/0.0.1707.960@0.0.1707.960" timestamp="1588591419618" />
-    <state x="538" y="305" key="com.intellij.ide.util.TipDialog" timestamp="1588591355494">
+    <state x="538" y="305" key="com.intellij.ide.util.TipDialog" timestamp="1588695972096">
       <screen x="0" y="0" width="1707" height="960" />
     </state>
-    <state x="538" y="305" key="com.intellij.ide.util.TipDialog/0.0.1707.960@0.0.1707.960" timestamp="1588591355494" />
+    <state x="538" y="305" key="com.intellij.ide.util.TipDialog/0.0.1707.960@0.0.1707.960" timestamp="1588695972096" />
     <state x="516" y="206" key="search.everywhere.popup" timestamp="1588598138766">
       <screen x="0" y="0" width="1707" height="960" />
     </state>
