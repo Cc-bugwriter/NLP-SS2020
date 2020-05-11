@@ -1,6 +1,10 @@
 import csv  # Aufgabe 2.1
 import numpy as np
-import tensorflow as tf  # Aufgabe 2.2, 2.3
+import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.callbacks import EarlyStopping
+from keras.utils import to_categorical
 
 
 def Dataset_reader(path='DATA/rt-polarity', name='train', type='vecs'):
@@ -41,9 +45,8 @@ def Dataset_reader(path='DATA/rt-polarity', name='train', type='vecs'):
 
 class MLP_Preceptron():
     """
-    MLP Preceptron base on Tensorflow
+    MLP Preceptron base on Keras
     """
-
     def __init__(self, input_set, target_set, hyper_parameters):
         """
         initialize model
@@ -54,88 +57,80 @@ class MLP_Preceptron():
         # assign input data set
         self.input = input_set
         # assign target data set
-        self.target = target_set
+        self.target = to_categorical(target_set)
         # assign hyper parameter
         self.hyper_parameter = hyper_parameters
         # define input interface of tf
-        self.input_layer = tf.compat.v1.placeholder(tf.float64, shape=(None, input_set.shape[1]+1))
-        # define target interface of tf
-        self.target_layer = tf.compat.v1.placeholder(tf.float64, shape=(None, target_set.shape[1]))
+        input_layer_shape = (None, input_set.shape[1])
 
-        # create network of layers (list)
-        network = [self.input_layer]  # initialize
+        # create model of Sequence
+        self.model = Sequential()
 
-        for layer_parameters in hyper_parameters["hidden_layers"]:
+        # assign hidden layer parameter
+        for i, layer_parameters in enumerate(hyper_parameters["hidden_layers"]):
             neuron_units, activation, regularizer = layer_parameters
-            print(neuron_units)
-            # assign layer parameter
-            layer = tf.keras.layers.Dense(neuron_units,
-                                          activation=activation,
-                                          use_bias=True,
-                                          kernel_regularizer=regularizer,
-                                          kernel_initializer=tf.random_normal_initializer())
-            network.append(layer)
+            # define input shape
+            if i == 0:
+                # define input layer
+                layer = Dense(neuron_units,
+                              activation=activation,
+                              use_bias=True,
+                              kernel_regularizer=regularizer,
+                              kernel_initializer='random_uniform',
+                              input_shape=input_layer_shape)
+            else:
+                layer = Dense(neuron_units,
+                              activation=activation,
+                              use_bias=True,
+                              kernel_regularizer=regularizer,
+                              kernel_initializer='random_uniform')
 
-        # assign prediction layer
-        self.preception_layer = tf.keras.layers.Dense(target_set.shape[1],
-                                                      hyper_parameters["output_activation"])
-        # assign evaluation
-        self.loss = hyper_parameters["loss_function"](self.target_layer, self.preception_layer)
-        self.optimizer = hyper_parameters["optimizer"](hyper_parameters["learning_rate"]).minimize(self.loss)
-        self.accuracy, _ = tf.metrics.accuracy(self.preception_layer, self.target_layer)
+            # add layer on model
+            self.model.add(layer)
+
+        # define prediction layer
+        preception_layer = Dense(target_set.shape[1], activation=hyper_parameters["output_activation"])
+        # add output layer on model
+        self.model.add(preception_layer)
+
+        # define model compile
+        optimizer = tf.keras.optimizers.SGD(lr=hyper_parameters["learning_rate"])
+        self.model.compile(optimizer=optimizer, loss=hyper_parameters["loss_function"], metrics=['accuracy'])
+
+        # define early_stopping_monitor
+        self.early_stopping_monitor = EarlyStopping(patience=2)
 
 
     def processing(self):
         """
         train MLP model with Training data set
-        print current training progress
-        :return: sess:[Session], instance of computing environment
         """
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-
-            # run iteration
-            for i in range(self.hyper_parameters["epochs"]):
-                # prove mini batch
-                if "batch_size" in self.hyper_parameters:
-                    # implement mini batch
-                    all_batch_input, all_batch_target = get_mini_batch(self.input, self.target,
-                                                                       self.hyper_parameters["batch_size"])
-                    for input_batch, target_batch in zip(all_batch_input, all_batch_target):
-                        sess.run(self.optimizer,
-                                 feed_dict={self.input_layer: input_batch, self.target_layer: target_batch})
-                else:
-                    # without mini batch
-                    sess.run(self.optimizer, feed_dict={self.input_layer: self.input, self.target_layer: self.target})
-
-                # print training progress
-                print("training process in {} %".format(i*100/float(self.hyper_parameters["epochs"])), flush=True)
-
-            return sess
+        self.model.fit(self.input, self.target, epochs=self.hyper_parameter["epochs"],
+                       batch_size=self.hyper_parameter["batch_size"],
+                       callbacks=[self.early_stopping_monitor], verbose=False)
 
 
-    def evaluation(self, sess, test_input, test_target):
+    def evaluation(self, test_input, test_target):
         """
         evaluate result of MLP Preceptron
-        :param sess:[Session], instance of computing environment
         :param test_input: [narray], input of test data set
         :param test_target: [narray], target of test data set
-        :return: preception [float], loss function
+        :return: preception [array], preception of MLP
         :return: accuracy [float], accuracy of classifier
         :return: loss [float], loss function
         """
         # predict classification
-        preception = sess.run([self.preception_layer],
-                               feed_dict={self.input_layer: test_input, self.target_layer: test_target})
+        prediction = self.model.predict(test_input)  # direct callback model
 
         # compute accuracy
-        accuracy = sess.run([self.accuracy],
-                            feed_dict={self.input_layer: test_input, self.target_layer: test_target})
+        accuracy_computer = tf.keras.metrics.Accuracy()  # initial accuracy metrics
+        accuracy_computer.update_state(test_target, prediction)  # compute
+        accuracy = accuracy_computer.result().numpy()  # convert result in array
 
         # compute loss
-        loss = sess.run([self.loss],
-                               feed_dict={self.input_layer: test_input, self.target_layer: test_target})
-
+        if self.hyper_parameter["loss_function"] == 'mean_squared_error':
+            loss_computer = tf.keras.losses.MeanSquaredError()
+            loss = loss_computer(test_target, prediction).numpy()
 
         return preception, accuracy, loss
 
@@ -159,14 +154,15 @@ def get_mini_batch(input_set, target_set, batch_size, seed=233):
 
 
 if __name__ == '__main__':
-    # parameters for task 2.2
+
+    # assign hyper parameters
     hyper_parameters = {"batch_size": 10,
                         "learning_rate": 0.01,
-                        "epochs": 100,
-                        "hidden_layers": [(50, tf.tanh, None), (50, tf.tanh, None)],
-                        "output_activation": tf.tanh,
-                        "loss_function": tf.compat.v1.losses.mean_squared_error,
-                        "optimizer": tf.compat.v1.train.GradientDescentOptimizer}
+                        "epochs": 200,
+                        "hidden_layers": [(80, 'relu', None), (50, 'relu', None)],
+                        "output_activation": 'softmax',
+                        "loss_function": 'mean_squared_error',
+                        "optimizer": 'sgd'}
 
     # Load data
     (X_train, Y_train) = Dataset_reader(name='train')
@@ -175,5 +171,5 @@ if __name__ == '__main__':
 
     # modeling
     MLP = MLP_Preceptron(X_train, Y_train, hyper_parameters)
-    MLP_sess = MLP.processing(hyper_parameters)
-    preception, accuracy, loss =MLP.evaluation(MLP_sess, X_test, Y_test)
+    MLP.processing()
+    preception, accuracy, loss =MLP.evaluation(X_test, Y_test)
