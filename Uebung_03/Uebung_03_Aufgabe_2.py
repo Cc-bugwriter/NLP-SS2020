@@ -5,6 +5,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.callbacks import EarlyStopping
 from keras.utils import to_categorical
+from keras.optimizers import SGD
 
 
 def Dataset_reader(path='DATA/rt-polarity', name='train', type='vecs'):
@@ -61,7 +62,7 @@ class MLP_Preceptron():
         # assign hyper parameter
         self.hyper_parameter = hyper_parameters
         # define input interface of tf
-        input_layer_shape = (None, input_set.shape[1])
+        input_layer_shape = (input_set.shape[1],)
 
         # create model of Sequence
         self.model = Sequential()
@@ -89,12 +90,12 @@ class MLP_Preceptron():
             self.model.add(layer)
 
         # define prediction layer
-        preception_layer = Dense(target_set.shape[1], activation=hyper_parameters["output_activation"])
+        preception_layer = Dense(target_set.shape[1]+1, activation=hyper_parameters["output_activation"])
         # add output layer on model
         self.model.add(preception_layer)
 
         # define model compile
-        optimizer = tf.keras.optimizers.SGD(lr=hyper_parameters["learning_rate"])
+        optimizer = SGD(lr=hyper_parameters["learning_rate"])
         self.model.compile(optimizer=optimizer, loss=hyper_parameters["loss_function"], metrics=['accuracy'])
 
         # define early_stopping_monitor
@@ -121,6 +122,7 @@ class MLP_Preceptron():
         """
         # predict classification
         prediction = self.model.predict(test_input)  # direct callback model
+        prediction = prediction[1]
 
         # compute accuracy
         accuracy_computer = tf.keras.metrics.Accuracy()  # initial accuracy metrics
@@ -171,5 +173,7 @@ if __name__ == '__main__':
 
     # modeling
     MLP = MLP_Preceptron(X_train, Y_train, hyper_parameters)
+
     MLP.processing()
+
     preception, accuracy, loss =MLP.evaluation(X_test, Y_test)
