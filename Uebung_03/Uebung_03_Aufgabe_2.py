@@ -72,7 +72,7 @@ class MLP_Preceptron():
             layer = tf.keras.layers.Dense(neuron_units,
                                           activation=activation,
                                           use_bias=True,
-                                          kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                                          kernel_regularizer=regularizer,
                                           kernel_initializer=tf.random_normal_initializer())
             network.append(layer)
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     hyper_parameters = {"batch_size": 10,
                         "learning_rate": 0.01,
                         "epochs": 100,
-                        "hidden_layers": [(50, tf.tanh, False), (50, tf.tanh, False)],
+                        "hidden_layers": [(50, tf.tanh, None), (50, tf.tanh, None)],
                         "output_activation": tf.tanh,
                         "loss_function": tf.compat.v1.losses.mean_squared_error,
                         "optimizer": tf.compat.v1.train.GradientDescentOptimizer}
