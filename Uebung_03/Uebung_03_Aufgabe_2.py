@@ -122,7 +122,7 @@ class MLP_Preceptron():
         """
         # predict classification
         prediction = self.model.predict(test_input)  # direct callback model
-        prediction = prediction[1]
+        prediction = prediction[:,1]
 
         # compute accuracy
         accuracy_computer = tf.keras.metrics.Accuracy()  # initial accuracy metrics
@@ -159,8 +159,8 @@ if __name__ == '__main__':
 
     # assign hyper parameters
     hyper_parameters = {"batch_size": 10,
-                        "learning_rate": 0.01,
-                        "epochs": 200,
+                        "learning_rate": 0.003,
+                        "epochs": 800,
                         "hidden_layers": [(80, 'relu', None), (50, 'relu', None)],
                         "output_activation": 'softmax',
                         "loss_function": 'mean_squared_error',
