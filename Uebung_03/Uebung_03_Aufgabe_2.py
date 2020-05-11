@@ -1,6 +1,5 @@
 import csv  # Aufgabe 2.1
 import numpy as np
-import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.callbacks import EarlyStopping
@@ -96,7 +95,7 @@ class MLP_Preceptron():
 
         # define model compile
         optimizer = SGD(lr=hyper_parameters["learning_rate"])
-        self.model.compile(optimizer=optimizer, loss=hyper_parameters["loss_function"], metrics=['accuracy'])
+        self.model.compile(optimizer=optimizer, loss=hyper_parameters["loss_function"], metrics=['accuracy', 'mae'])
 
         # define early_stopping_monitor
         self.early_stopping_monitor = EarlyStopping(patience=2)
@@ -121,38 +120,16 @@ class MLP_Preceptron():
         :return: loss [float], loss function
         """
         # predict classification
-        prediction = self.model.predict(test_input)  # direct callback model
-        prediction = prediction[:,1]
+        preception = self.model.predict(test_input)  # direct callback model
 
-        # compute accuracy
-        accuracy_computer = tf.keras.metrics.Accuracy()  # initial accuracy metrics
-        accuracy_computer.update_state(test_target, prediction)  # compute
-        accuracy = accuracy_computer.result().numpy()  # convert result in array
+        # evaluate accuracy, mae loss
+        Evaluatation = self.model.evaluate(test_input, to_categorical(test_target), verbose=False)
 
-        # compute loss
-        if self.hyper_parameter["loss_function"] == 'mean_squared_error':
-            loss_computer = tf.keras.losses.MeanSquaredError()
-            loss = loss_computer(test_target, prediction).numpy()
+        # assign separate metrics
+        accuracy = Evaluatation[:2]
+        loss = Evaluatation[2]
 
         return preception, accuracy, loss
-
-
-## Miscellaneous functions
-def get_mini_batch(input_set, target_set, batch_size, seed=233):
-    """
-    return a random mini_batch of the whole training data
-    :param input_set: [narray], whole training data set
-    :param target_set: [narray], whole target data set
-    :param batch_size: int, the size of batch subset
-    :param seed: int, random seed for shuffle (default value: 233)
-    :return: [list of narray], all random mini_batch dataset
-    """
-    np.random.seed(seed)
-    np.random.shuffle(input_set)
-    np.random.shuffle(target_set)
-    all_batch_input = [input_set[k: k + batch_size, :] for k in range(0, input_set.shape[0], batch_size)]
-    all_batch_target = [target_set[k: k + batch_size, :] for k in range(0, target_set.shape[0], batch_size)]
-    return all_batch_input, all_batch_target
 
 
 if __name__ == '__main__':
@@ -162,7 +139,7 @@ if __name__ == '__main__':
                         "learning_rate": 0.003,
                         "epochs": 800,
                         "hidden_layers": [(80, 'relu', None), (50, 'relu', None)],
-                        "output_activation": 'softmax',
+                        "output_activation": 'tanh',
                         "loss_function": 'mean_squared_error',
                         "optimizer": 'sgd'}
 
@@ -172,8 +149,12 @@ if __name__ == '__main__':
     (X_test, Y_test) = Dataset_reader(name='test')
 
     # modeling
+    Y_train_a = to_categorical(Y_test)
     MLP = MLP_Preceptron(X_train, Y_train, hyper_parameters)
 
     MLP.processing()
 
     preception, accuracy, loss =MLP.evaluation(X_test, Y_test)
+
+    print('accuracy : {}'.format(accuracy[1]))
+    print('loss : {}'.format(loss))
