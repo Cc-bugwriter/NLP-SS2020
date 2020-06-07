@@ -47,7 +47,7 @@ class MLP_Preceptron():
     """
     MLP Preceptron base on Keras
     """
-    def __init__(self, input_set, target_set, hyper_parameters):
+    def __init__(self, input_set, target_set, X_dev, Y_dev, hyper_parameters):
         """
         initialize model
         :param input_set
@@ -62,6 +62,9 @@ class MLP_Preceptron():
         self.hyper_parameter = hyper_parameters
         # define input interface of tf
         input_layer_shape = (input_set.shape[1],)
+
+        self.X_dev = X_dev
+        self.Y_dev = to_categorical(Y_dev)
 
         # create model of Sequence
         self.model = Sequential()
@@ -100,12 +103,17 @@ class MLP_Preceptron():
         # define early_stopping_monitor
         self.early_stopping_monitor = EarlyStopping(patience=2)
 
+        # print model structure
+        print(self.model.summary())
+        print("Defined the model.")
+
 
     def processing(self):
         """
         train MLP model with Training data set
         """
         self.model.fit(self.input, self.target, epochs=self.hyper_parameter["epochs"],
+                       validation_data=(self.X_dev, self.Y_dev),
                        batch_size=self.hyper_parameter["batch_size"],
                        callbacks=[self.early_stopping_monitor], verbose=False)
 
@@ -137,7 +145,7 @@ if __name__ == '__main__':
     # assign hyper parameters
     hyper_parameters = {"batch_size": 10,
                         "learning_rate": 0.003,
-                        "epochs": 800,
+                        "epochs": 50,
                         "hidden_layers": [(80, 'relu', None), (50, 'relu', None)],
                         "output_activation": 'tanh',
                         "loss_function": 'mean_squared_error',
@@ -150,11 +158,11 @@ if __name__ == '__main__':
 
     # modeling
     Y_train_a = to_categorical(Y_test)
-    MLP = MLP_Preceptron(X_train, Y_train, hyper_parameters)
+    MLP = MLP_Preceptron(X_train, Y_train, X_dev, Y_dev, hyper_parameters)
 
     MLP.processing()
 
     preception, accuracy, loss =MLP.evaluation(X_test, Y_test)
 
-    print('accuracy : {}'.format(accuracy[1]))
     print('loss : {}'.format(loss))
+    print('accuracy : {}'.format(accuracy[1]))
