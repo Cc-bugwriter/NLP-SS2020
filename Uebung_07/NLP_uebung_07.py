@@ -169,7 +169,7 @@ def plot_fit_hist(history):
 
 if __name__ == '__main__':
     # Aufgabe 3.1
-    w2v_dict, w2v_size = load_word2vec_embeddings('w2v_100K.txt')
+    w2v_dict, w2v_size = load_word2vec_embeddings('w2v_100K_emb.txt')
     reviews_dev, labels_onehot_dev = read_data_sets('./Data/rt-polarity.dev.reviews.txt',
                                                     './Data/rt-polarity.dev.labels.txt')
     reviews_test, labels_onehot_test = read_data_sets('./Data/rt-polarity.test.reviews.txt',
@@ -192,4 +192,4 @@ if __name__ == '__main__':
     model, history = MLP_modell(reviews_train, labels_onehot_train,
                             reviews_test, labels_onehot_test,
                             reviews_dev, labels_onehot_dev)
-
+    model.save('MLP_model.h5')
