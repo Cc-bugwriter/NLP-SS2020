@@ -132,8 +132,8 @@ def MLP_modell(reviews_train, label_train, reviews_test, labels_test, reviews_de
     # train the model and observe the mean squared error on the development set
     history = model.fit(reviews_train, label_train,
                         validation_data=(reviews_dev, label_dev),
-                        batch_size=5, epochs=200,
-                        callbacks=my_callbacks)
+                        batch_size=20, epochs=200,
+                        callbacks=my_callbacks, verbose=False)
 
 
     # evaluate the model on the test set
