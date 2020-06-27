@@ -15,7 +15,7 @@ def read_label_dataset(file="test-hex06-dataset.txt"):
         second_sentences: [list], list of second sentence
     """
     # assign path of data sets
-    path = "./Data/"
+    path = "./DATA/"
     with open(f"{path}{file}", 'r', encoding='utf-8') as file:
         # labeled data
         scores = []
@@ -39,7 +39,7 @@ def read_unlabel_dataset(file: str):
         second_sentences: [list], list of second sentence
     """
     # assign path of data sets
-    path = "./Data/"
+    path = "./DATA/"
     with open(f"{path}{file}", 'r', encoding='utf-8') as file:
         # unlabeled data
         first_sentences = []
