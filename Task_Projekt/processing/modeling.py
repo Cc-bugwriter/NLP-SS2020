@@ -28,8 +28,6 @@ def modeling(hyperparameter: dict):
         # define dropout layer i
         dropout_interm = keras.layers.Dropout(hyperparameter["Dropout_rate"][i])(dense_layer_interm)
 
-        print(i)
-
     # define output layer
     output = keras.layers.Dense(1, activation=hyperparameter["activation"][-1])(dropout_interm)
 
@@ -41,7 +39,7 @@ def modeling(hyperparameter: dict):
     print("Defined the model.")
 
     # compile the model
-    model.compile(optimizer='adam', loss=keras.losses.mean_squared_error,
+    model.compile(optimizer='adam', loss=keras.losses.mean_squared_logarithmic_error,
                   metrics=[keras.metrics.mean_squared_error])
     print("Compiled the model.")
 
