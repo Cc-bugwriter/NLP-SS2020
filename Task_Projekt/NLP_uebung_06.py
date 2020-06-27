@@ -63,10 +63,11 @@ def score_writer(file: str, scores: [float]):
 
 
 # Aufgabe 2.2
-def load_vectors(filename="./wiki-news-300d-1M.vec"):
+def load_vectors(size=40000, filename="./wiki-news-300d-1M.vec"):
     """
     read them into a Python dictionary that maps every token to the corresponding vector,
     load only the first 20000 or 40000 lines of the file
+    :param size: [int], size of loading vector (default value: 40000)
     :param filename: [str], file's name (default value: "./wiki-news-300d-1M.vec")
     :return: data [dict], word vector reference
     """
@@ -83,7 +84,7 @@ def load_vectors(filename="./wiki-news-300d-1M.vec"):
 
             # count iteration
             num += 1
-            if num >= 40000:
+            if num >= size:
                 break
 
         return data
