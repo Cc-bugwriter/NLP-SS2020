@@ -63,12 +63,12 @@ def loading(fast=True):
 def opimazation(model, search_size):
     """
     use random search to find the best hyper parameter
-    param: model, [estimator], the model of estimator
+    param: model, [str], the model of estimator
     return params, [list], list of searched hyper parameters
     """
     # assign activation function candidate
     candidate_space = ['relu', 'selu', 'elu', 'hard_sigmoid', 'sigmoid']
-    random.seed(233)
+    random.seed(233333)
 
     # initial output dict
     params_dict = {"hyperparameter": [],
@@ -89,7 +89,7 @@ def opimazation(model, search_size):
 
         MLP = modeling.modeling(hyperparameter)
 
-        print('searching...')
+        print(f'searching...({i+1}/{search_size})')
 
         MLP.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
                 validation_data=([dev_first_sentences_vec, dev_second_sentences_vec], dev_scores),
@@ -108,8 +108,8 @@ def opimazation(model, search_size):
     print('searching time cost', time_end - time_start, 's')
 
     # find the best hyper parameter in search ranking
-    index = np.flatnonzero(params["score"] == sorted(params["score"])[0])
-    best_param = params_dict["hyperparameter"][index]
+    index = np.flatnonzero(params_dict["score"] == sorted(params_dict["score"])[0])
+    best_param = params_dict["hyperparameter"][int(index)]
 
     return best_param, params_dict
 
@@ -136,7 +136,7 @@ if __name__ == '__main__':
                                            save_best_only=True, save_weights_only=False, verbose=1)
 
     # random search
-    best_param, params = opimazation(None, 100)
+    best_param, params = opimazation(None, 10)
 
     # build MLP model
     MLP = modeling.modeling(best_param)
