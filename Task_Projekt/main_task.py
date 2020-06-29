@@ -103,7 +103,7 @@ def opimazation(model, search_size, max_deep):
     """
     # assign activation function candidate
     candidate_space = ['relu', 'selu', 'elu', 'hard_sigmoid', 'sigmoid']
-    random.seed(233333)
+    random.seed(23333)
 
     # initial output dict
     params_dict = {"hyperparameter": [],
@@ -155,8 +155,8 @@ def opimazation(model, search_size, max_deep):
 if __name__ == '__main__':
     # params_space (controller)
     model = "LSTM"
-    search_size = 3
-    max_deep = 2
+    search_size = 1
+    max_deep = 3
 
     # gpu/cpu transform
     # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -173,7 +173,7 @@ if __name__ == '__main__':
                       "activation": ('hard_sigmoid', 'hard_sigmoid', 'relu', 'relu', 'relu','sigmoid')}"""
 
     # define callback function
-    stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-4, patience=40, verbose=0, mode='auto',
+    stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-4, patience=20, verbose=0, mode='auto',
                                          baseline=None, restore_best_weights=True)
     save = keras.callbacks.ModelCheckpoint(filepath=f'result/task_{model}.hdf5', monitor='val_loss', mode='auto',
                                            save_best_only=True, save_weights_only=False, verbose=1)
@@ -186,6 +186,13 @@ if __name__ == '__main__':
         Preceptron = modeling.modeling_MLP(best_param)
     elif model == "LSTM":
         Preceptron = modeling.modeling_LSTM_MLP(best_param)
+
+    # merge all available data set
+    train_first_sentences_vec = np.vstack(
+        (train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec))
+    train_second_sentences_vec = np.vstack(
+        (train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec))
+    train_scores = np.vstack((train_scores, dev_scores, test_scores))
 
     # train the model and observe the mean squared error on the development set
     Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
