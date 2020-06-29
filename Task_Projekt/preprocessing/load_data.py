@@ -21,6 +21,10 @@ def read_label_dataset(file="test-hex06-dataset.txt"):
             first_sentences.append(first_sentence)
             second_sentences.append(second_sentence)
 
+        # string to list
+        first_sentences = [sentence.split() for sentence in first_sentences]
+        second_sentences = [sentence.split() for sentence in second_sentences]
+
         return scores, first_sentences, second_sentences
 
 
@@ -42,5 +46,9 @@ def read_unlabel_dataset(file: str):
             first_sentence, second_sentence = line.strip().split('\t')
             first_sentences.append(first_sentence)
             second_sentences.append(second_sentence)
+
+        # string to list
+        first_sentences = [sentence.split() for sentence in first_sentences]
+        second_sentences = [sentence.split() for sentence in second_sentences]
 
         return first_sentences, second_sentences
