@@ -131,7 +131,7 @@ def opimazation(model, search_size, max_deep):
 
         Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
                 validation_data=([dev_first_sentences_vec, dev_second_sentences_vec], dev_scores),
-                batch_size=30, epochs=100, verbose=1,
+                batch_size=30, epochs=20, verbose=1,
                 callbacks=[stop])
 
         # evaluate the model on the test set
@@ -159,7 +159,8 @@ if __name__ == '__main__':
     max_deep = 3
 
     # gpu/cpu transform
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    if model == "MLP":
+        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
     # load data sets
     (train_first_sentences_vec, train_second_sentences_vec, train_scores,
@@ -192,7 +193,7 @@ if __name__ == '__main__':
         (train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec))
     train_second_sentences_vec = np.vstack(
         (train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec))
-    train_scores = np.vstack((train_scores, dev_scores, test_scores))
+    train_scores = np.hstack((train_scores, dev_scores, test_scores))
 
     # train the model and observe the mean squared error on the development set
     Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
