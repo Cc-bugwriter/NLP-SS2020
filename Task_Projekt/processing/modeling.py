@@ -63,7 +63,7 @@ def modeling_LSTM_MLP(hyperparameter: dict):
                                                 input_length=max_sentence_length,
                                                 trainable=False)
 
-    lstm_layer = keras.layers.Bidirectional(keras.layers.LSTM(300))
+    lstm_layer = keras.layers.LSTM(300)
 
     sequence_1_input = keras.layers.Input(shape=(max_sentence_length,), dtype='int32')
     embedded_sequences_1 = embedding_layer(sequence_1_input)
@@ -91,7 +91,7 @@ def modeling_LSTM_MLP(hyperparameter: dict):
 
     model = keras.Model(inputs=[sequence_1_input, sequence_2_input], outputs=output)
 
-    model.compile(optimizer='adam', loss=keras.losses.mean_squared_logarithmic_error,
+    model.compile(optimizer='adam', loss=keras.losses.mean_squared_error,
                   metrics=[keras.metrics.mean_squared_error])
     model.summary()
     return model

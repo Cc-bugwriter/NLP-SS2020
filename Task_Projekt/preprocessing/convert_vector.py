@@ -38,6 +38,9 @@ def aver_sentence(data: dict, tokens):
     :param tokens: [list]
     :return: the average of the embeddings of its tokens: value_aver
     """
+    # set random seed
+    np.random.seed(233)
+
     def map_token(token, data):
         for key in data:
             if key == token:

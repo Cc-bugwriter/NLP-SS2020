@@ -5,9 +5,11 @@ from tensorflow import keras
 import os
 from preprocessing import load_data as ld
 from preprocessing import convert_vector as cv
+from preprocessing import preprose_attackes_txt as pa
 from processing import modeling
 from postprocessing import record
 import time
+import pickle
 
 
 def loading(fast=True):
@@ -21,6 +23,12 @@ def loading(fast=True):
         train_scores, train_first_sentences, train_second_sentences = ld.read_label_dataset(file="training-dataset.txt")
         test_scores, test_first_sentences, test_second_sentences = ld.read_label_dataset(file="test-hex06-dataset.txt")
         val_first_sentences, val_second_sentences = ld.read_unlabel_dataset(file="test-scoreboard-dataset.txt")
+
+        # recover the visual attack with inverse VIPER
+        test_first_sentences = pa.get_unattacked_sentences(test_first_sentences)
+        test_second_sentences = pa.get_unattacked_sentences(test_second_sentences)
+        val_first_sentences = pa.get_unattacked_sentences(val_first_sentences)
+        val_second_sentences = pa.get_unattacked_sentences(val_second_sentences)
 
         # assign embedding_matrix
         _, word_to_embedding = cv.get_pretrained_embeddings()
@@ -60,14 +68,17 @@ def loading(fast=True):
             val_second_sentences_vec = cv.pad_sentence(val_second_sentences, word_to_embedding, max_sentence_length)
 
         # save to local (prepare for fast load)
-        np.save('dev_first_sentences_vec.npy', dev_first_sentences_vec)
-        np.save('dev_second_sentences_vec.npy', dev_second_sentences_vec)
-        np.save('train_first_sentences_vec.npy', train_first_sentences_vec)
-        np.save('train_second_sentences_vec.npy', train_second_sentences_vec)
-        np.save('test_first_sentences_vec.npy', test_first_sentences_vec)
-        np.save('test_second_sentences_vec.npy', test_second_sentences_vec)
-        np.save('val_first_sentences_vec.npy', val_first_sentences_vec)
-        np.save('val_second_sentences_vec.npy', val_second_sentences_vec)
+        np.save(f'DATA/fast_load/{model}/dev_first_sentences_vec.npy', dev_first_sentences_vec)
+        np.save(f'DATA/fast_load/{model}/dev_second_sentences_vec.npy', dev_second_sentences_vec)
+        np.save(f'DATA/fast_load/{model}/dev_scores.npy', dev_scores)
+        np.save(f'DATA/fast_load/{model}/train_first_sentences_vec.npy', train_first_sentences_vec)
+        np.save(f'DATA/fast_load/{model}/train_second_sentences_vec.npy', train_second_sentences_vec)
+        np.save(f'DATA/fast_load/{model}/train_scores.npy', train_scores)
+        np.save(f'DATA/fast_load/{model}/test_first_sentences_vec.npy', test_first_sentences_vec)
+        np.save(f'DATA/fast_load/{model}/test_second_sentences_vec.npy', test_second_sentences_vec)
+        np.save(f'DATA/fast_load/{model}/test_scores.npy', test_scores)
+        np.save(f'DATA/fast_load/{model}/val_first_sentences_vec.npy', val_first_sentences_vec)
+        np.save(f'DATA/fast_load/{model}/val_second_sentences_vec.npy', val_second_sentences_vec)
 
         return (train_first_sentences_vec, train_second_sentences_vec, train_scores,
                 dev_first_sentences_vec, dev_second_sentences_vec, dev_scores,
@@ -75,17 +86,17 @@ def loading(fast=True):
                 val_first_sentences_vec, val_second_sentences_vec)
 
     else:
-        train_first_sentences_vec = np.load("DATA/fast_load/train_first_sentences_vec.npy")
-        train_second_sentences_vec = np.load("DATA/fast_load/train_second_sentences_vec.npy")
-        train_scores = np.load("DATA/fast_load/train_scores.npy")
-        dev_first_sentences_vec = np.load("DATA/fast_load/dev_first_sentences_vec.npy")
-        dev_second_sentences_vec = np.load("DATA/fast_load/dev_second_sentences_vec.npy")
-        dev_scores = np.load("DATA/fast_load/dev_scores.npy")
-        test_first_sentences_vec = np.load("DATA/fast_load/test_first_sentences_vec.npy")
-        test_second_sentences_vec = np.load("DATA/fast_load/test_second_sentences_vec.npy")
-        test_scores = np.load("DATA/fast_load/test_scores.npy")
-        val_first_sentences_vec = np.load("DATA/fast_load/val_first_sentences_vec.npy")
-        val_second_sentences_vec = np.load("DATA/fast_load/val_second_sentences_vec.npy")
+        train_first_sentences_vec = np.load(f"DATA/fast_load/{model}/train_first_sentences_vec.npy")
+        train_second_sentences_vec = np.load(f"DATA/fast_load/{model}/train_second_sentences_vec.npy")
+        train_scores = np.load(f"DATA/fast_load/{model}/train_scores.npy")
+        dev_first_sentences_vec = np.load(f"DATA/fast_load/{model}/dev_first_sentences_vec.npy")
+        dev_second_sentences_vec = np.load(f"DATA/fast_load/{model}/dev_second_sentences_vec.npy")
+        dev_scores = np.load(f"DATA/fast_load/{model}/dev_scores.npy")
+        test_first_sentences_vec = np.load(f"DATA/fast_load/{model}/test_first_sentences_vec.npy")
+        test_second_sentences_vec = np.load(f"DATA/fast_load/{model}/test_second_sentences_vec.npy")
+        test_scores = np.load(f"DATA/fast_load/{model}/test_scores.npy")
+        val_first_sentences_vec = np.load(f"DATA/fast_load/{model}/val_first_sentences_vec.npy")
+        val_second_sentences_vec = np.load(f"DATA/fast_load/{model}/val_second_sentences_vec.npy")
 
         return (train_first_sentences_vec, train_second_sentences_vec, train_scores,
                 dev_first_sentences_vec, dev_second_sentences_vec, dev_scores,
@@ -131,11 +142,14 @@ def opimazation(model, search_size, max_deep):
 
         Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
                 validation_data=([dev_first_sentences_vec, dev_second_sentences_vec], dev_scores),
-                batch_size=30, epochs=20, verbose=1,
+                batch_size=30, epochs=6, verbose=1,
                 callbacks=[stop])
 
         # evaluate the model on the test set
         res = Preceptron.evaluate([test_first_sentences_vec, test_second_sentences_vec], test_scores)
+
+        # release memory
+        keras.backend.clear_session()
 
         params_dict["hyperparameter"].append(hyperparameter)
         params_dict["score"].append(res[1])
@@ -149,14 +163,21 @@ def opimazation(model, search_size, max_deep):
     index = np.flatnonzero(params_dict["score"] == sorted(params_dict["score"])[0])
     best_param = params_dict["hyperparameter"][int(index)]
 
+    # save searched paramters
+    params_save = open(f'param_{model}.pkl', 'wb')
+    pickle.dump(params_dict, params_save)
+    params_save.clo
+
     return best_param, params_dict
 
 
 if __name__ == '__main__':
     # params_space (controller)
-    model = "LSTM"
-    search_size = 1
-    max_deep = 3
+    fast = True
+    model = "MLP"
+    search_size = 50
+    max_deep = 8
+    train = False
 
     # gpu/cpu transform
     if model == "MLP":
@@ -166,48 +187,53 @@ if __name__ == '__main__':
     (train_first_sentences_vec, train_second_sentences_vec, train_scores,
      dev_first_sentences_vec, dev_second_sentences_vec, dev_scores,
      test_first_sentences_vec, test_second_sentences_vec, test_scores,
-     val_first_sentences_vec, val_second_sentences_vec) = loading()
+     val_first_sentences_vec, val_second_sentences_vec) = loading(fast=fast)
 
-    """# assign hyper parameter
-    hyperparameter = {"Dropout_rate": (0.3, 0.3, 0.3, 0.3, 0.3, 0.3),
-                      "hidden_layer_size": (300, 150, 75, 30, 10),
-                      "activation": ('hard_sigmoid', 'hard_sigmoid', 'relu', 'relu', 'relu','sigmoid')}"""
+    if train:
+        # define callback function
+        stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=5, verbose=0, mode='auto',
+                                             baseline=None, restore_best_weights=True)
+        save = keras.callbacks.ModelCheckpoint(filepath=f'result/task_{model}.hdf5', monitor='val_loss', mode='auto',
+                                               save_best_only=True, save_weights_only=False, verbose=1)
 
-    # define callback function
-    stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-4, patience=20, verbose=0, mode='auto',
-                                         baseline=None, restore_best_weights=True)
-    save = keras.callbacks.ModelCheckpoint(filepath=f'result/task_{model}.hdf5', monitor='val_loss', mode='auto',
-                                           save_best_only=True, save_weights_only=False, verbose=1)
+        # random search
+        best_param, params = opimazation(model, search_size, max_deep)
 
-    # random search
-    best_param, params = opimazation(model, search_size, max_deep)
+        # build Preceptron model
+        if model == "MLP":
+            Preceptron = modeling.modeling_MLP(best_param)
+        elif model == "LSTM":
+            Preceptron = modeling.modeling_LSTM_MLP(best_param)
 
-    # build Preceptron model
-    if model == "MLP":
-        Preceptron = modeling.modeling_MLP(best_param)
-    elif model == "LSTM":
-        Preceptron = modeling.modeling_LSTM_MLP(best_param)
+        # merge all available data set
+        train_first_sentences_vec = np.vstack(
+            (train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec,
+             train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec))
+        train_second_sentences_vec = np.vstack(
+            (train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec,
+             train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec))
+        train_scores = np.hstack((train_scores, dev_scores, test_scores,
+                                  train_scores, dev_scores, test_scores))
 
-    # merge all available data set
-    train_first_sentences_vec = np.vstack(
-        (train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec))
-    train_second_sentences_vec = np.vstack(
-        (train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec))
-    train_scores = np.hstack((train_scores, dev_scores, test_scores))
+        # train the model and observe the mean squared error on the development set
+        Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
+                       validation_data=([dev_first_sentences_vec, dev_second_sentences_vec], dev_scores),
+                       batch_size=30, epochs=100, verbose=0,
+                       callbacks=[stop, save])
 
-    # train the model and observe the mean squared error on the development set
-    Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
-            validation_data=([dev_first_sentences_vec, dev_second_sentences_vec], dev_scores),
-            batch_size=30, epochs=100, verbose=0,
-            callbacks=[stop, save])
-
-    print("Trained the model.")
+        print("Trained the model.")
+    else:
+        # load trained Model
+        Preceptron = keras.models.load_model(f'./result/task_{model}.hdf5')
 
     # evaluate the model on the test set
     res = Preceptron.evaluate([test_first_sentences_vec, test_second_sentences_vec], test_scores)
 
     # predict the test data set of scoreboard
-    pre = Preceptron.predict([val_first_sentences_vec, val_second_sentences_vec])
+    pre_part_1 = Preceptron.predict([val_first_sentences_vec, val_second_sentences_vec])
+    pre_part_2 = Preceptron.predict([val_second_sentences_vec, val_first_sentences_vec])
+
+    pre = np.mean(pre_part_1, pre_part_2)
 
     # save the prediction of unlabeled data
-    record.score_writer('result/test_result.txt', pre.reshape(-1).tolist())
+    record.score_writer('result/scores.txt', pre.reshape(-1).tolist())
