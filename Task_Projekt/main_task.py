@@ -142,7 +142,7 @@ def opimazation(model, search_size, max_deep):
 
         Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
                 validation_data=([dev_first_sentences_vec, dev_second_sentences_vec], dev_scores),
-                batch_size=30, epochs=6, verbose=1,
+                batch_size=30, epochs=20, verbose=1,
                 callbacks=[stop])
 
         # evaluate the model on the test set
@@ -164,9 +164,9 @@ def opimazation(model, search_size, max_deep):
     best_param = params_dict["hyperparameter"][int(index)]
 
     # save searched paramters
-    params_save = open(f'param_{model}.pkl', 'wb')
+    params_save = open(f'./result/param_{model}.pkl', 'wb')
     pickle.dump(params_dict, params_save)
-    params_save.clo
+    params_save.close()
 
     return best_param, params_dict
 
@@ -177,7 +177,7 @@ if __name__ == '__main__':
     model = "MLP"
     search_size = 50
     max_deep = 8
-    train = False
+    train = True
 
     # gpu/cpu transform
     if model == "MLP":
@@ -191,7 +191,9 @@ if __name__ == '__main__':
 
     if train:
         # define callback function
-        stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=5, verbose=0, mode='auto',
+        # stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=5, verbose=0, mode='auto',
+        #                                      baseline=None, restore_best_weights=True)
+        stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-4, patience=40, verbose=0, mode='auto',
                                              baseline=None, restore_best_weights=True)
         save = keras.callbacks.ModelCheckpoint(filepath=f'result/task_{model}.hdf5', monitor='val_loss', mode='auto',
                                                save_best_only=True, save_weights_only=False, verbose=1)
@@ -206,19 +208,19 @@ if __name__ == '__main__':
             Preceptron = modeling.modeling_LSTM_MLP(best_param)
 
         # merge all available data set
-        train_first_sentences_vec = np.vstack(
+        train_first_sentences_vec_all = np.vstack(
             (train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec,
              train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec))
-        train_second_sentences_vec = np.vstack(
+        train_second_sentences_vec_all = np.vstack(
             (train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec,
              train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec))
-        train_scores = np.hstack((train_scores, dev_scores, test_scores,
-                                  train_scores, dev_scores, test_scores))
+        train_scores_all = np.hstack((train_scores, dev_scores, test_scores,
+                                      train_scores, dev_scores, test_scores))
 
         # train the model and observe the mean squared error on the development set
-        Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
-                       validation_data=([dev_first_sentences_vec, dev_second_sentences_vec], dev_scores),
-                       batch_size=30, epochs=100, verbose=0,
+        Preceptron.fit([train_first_sentences_vec_all, train_second_sentences_vec_all], train_scores_all,
+                       validation_data=([train_first_sentences_vec, train_second_sentences_vec], train_scores),
+                       batch_size=30, epochs=300, verbose=0,
                        callbacks=[stop, save])
 
         print("Trained the model.")
@@ -233,7 +235,7 @@ if __name__ == '__main__':
     pre_part_1 = Preceptron.predict([val_first_sentences_vec, val_second_sentences_vec])
     pre_part_2 = Preceptron.predict([val_second_sentences_vec, val_first_sentences_vec])
 
-    pre = np.mean(pre_part_1, pre_part_2)
+    pre = (pre_part_1 + pre_part_2)/2
 
     # save the prediction of unlabeled data
     record.score_writer('result/scores.txt', pre.reshape(-1).tolist())
