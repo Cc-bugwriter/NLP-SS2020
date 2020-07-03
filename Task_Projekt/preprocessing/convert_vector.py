@@ -38,14 +38,11 @@ def aver_sentence(data: dict, tokens):
     :param tokens: [list]
     :return: the average of the embeddings of its tokens: value_aver
     """
-    # set random seed
-    np.random.seed(233)
-
     def map_token(token, data):
         for key in data:
             if key == token:
                 return np.array(data[key])
-        return np.random.rand(1, 300)
+        return np.zeros((1, 300), dtype=float)
 
     # tokens = nltk.word_tokenize(sentence)
     value = np.zeros((1, 300), dtype=float)

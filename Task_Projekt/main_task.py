@@ -7,6 +7,7 @@ from preprocessing import load_data as ld
 from preprocessing import convert_vector as cv
 from preprocessing import preprose_attackes_txt as pa
 from processing import modeling
+from scipy.stats import spearmanr
 from postprocessing import record
 import time
 import pickle
@@ -22,7 +23,7 @@ def loading(fast=True):
         dev_scores, dev_first_sentences, dev_second_sentences = ld.read_label_dataset(file="development-dataset.txt")
         train_scores, train_first_sentences, train_second_sentences = ld.read_label_dataset(file="training-dataset.txt")
         test_scores, test_first_sentences, test_second_sentences = ld.read_label_dataset(file="test-hex06-dataset.txt")
-        val_first_sentences, val_second_sentences = ld.read_unlabel_dataset(file="test-scoreboard-dataset.txt")
+        val_first_sentences, val_second_sentences = ld.read_unlabel_dataset(file="test-final-dataset.txt")
 
         # recover the visual attack with inverse VIPER
         test_first_sentences = pa.get_unattacked_sentences(test_first_sentences)
@@ -104,7 +105,7 @@ def loading(fast=True):
                 val_first_sentences_vec, val_second_sentences_vec)
 
 
-def opimazation(model, search_size, max_deep):
+def opimazation(model, search_size, max_deep, random_add):
     """
     use random search to find the best hyper parameter
     param: model, [str], the model of estimator
@@ -114,11 +115,12 @@ def opimazation(model, search_size, max_deep):
     """
     # assign activation function candidate
     candidate_space = ['relu', 'selu', 'elu', 'hard_sigmoid', 'sigmoid']
-    random.seed(23333)
+    random.seed(2333333 + random_add)
 
     # initial output dict
     params_dict = {"hyperparameter": [],
-                   "score": []
+                   "score": [],
+                   "spearmans ranking": []
                    }
     # timer start
     time_start = time.time()
@@ -147,12 +149,18 @@ def opimazation(model, search_size, max_deep):
 
         # evaluate the model on the test set
         res = Preceptron.evaluate([test_first_sentences_vec, test_second_sentences_vec], test_scores)
+        pre = Preceptron.predict([test_first_sentences_vec, test_second_sentences_vec])
+
+        # calculate spearman's ranking
+        spr = spearmanr(test_scores, pre).correlation
+        print(f"Spearman's rank correlation coefficient is:{spr}")
 
         # release memory
         keras.backend.clear_session()
 
         params_dict["hyperparameter"].append(hyperparameter)
         params_dict["score"].append(res[1])
+        params_dict["spearmans ranking"].append(spr)
 
     # timer end
     time_end = time.time()
@@ -175,8 +183,8 @@ if __name__ == '__main__':
     # params_space (controller)
     fast = True
     model = "MLP"
-    search_size = 50
-    max_deep = 8
+    search_size = 40
+    max_deep = 3
     train = True
 
     # gpu/cpu transform
@@ -189,53 +197,92 @@ if __name__ == '__main__':
      test_first_sentences_vec, test_second_sentences_vec, test_scores,
      val_first_sentences_vec, val_second_sentences_vec) = loading(fast=fast)
 
-    if train:
-        # define callback function
-        # stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=5, verbose=0, mode='auto',
-        #                                      baseline=None, restore_best_weights=True)
-        stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-4, patience=40, verbose=0, mode='auto',
-                                             baseline=None, restore_best_weights=True)
-        save = keras.callbacks.ModelCheckpoint(filepath=f'result/task_{model}.hdf5', monitor='val_loss', mode='auto',
-                                               save_best_only=True, save_weights_only=False, verbose=1)
+    # Violent test
+    params_list = []
+    best_parameter_list = []
+    pre_list = []
+    res_list = []
+    spr_list = []
 
-        # random search
-        best_param, params = opimazation(model, search_size, max_deep)
+    for loop in range(10):
+        if train:
+            # define callback function
+            stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-4, patience=40, verbose=0,
+                                                 mode='auto',
+                                                 baseline=None, restore_best_weights=True)
+            save = keras.callbacks.ModelCheckpoint(filepath=f'result/task_{model}.hdf5', monitor='val_loss',
+                                                   mode='auto',
+                                                   save_best_only=True, save_weights_only=False, verbose=1)
 
-        # build Preceptron model
-        if model == "MLP":
-            Preceptron = modeling.modeling_MLP(best_param)
-        elif model == "LSTM":
-            Preceptron = modeling.modeling_LSTM_MLP(best_param)
+            # random search
+            best_param, params = opimazation(model, search_size, max_deep, loop)
 
-        # merge all available data set
-        train_first_sentences_vec_all = np.vstack(
-            (train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec,
-             train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec))
-        train_second_sentences_vec_all = np.vstack(
-            (train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec,
-             train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec))
-        train_scores_all = np.hstack((train_scores, dev_scores, test_scores,
-                                      train_scores, dev_scores, test_scores))
+            params_list.append(params)
+            best_parameter_list.append(best_param)
 
-        # train the model and observe the mean squared error on the development set
-        Preceptron.fit([train_first_sentences_vec_all, train_second_sentences_vec_all], train_scores_all,
-                       validation_data=([train_first_sentences_vec, train_second_sentences_vec], train_scores),
-                       batch_size=30, epochs=300, verbose=0,
-                       callbacks=[stop, save])
+            # build Preceptron model
+            if model == "MLP":
+                Preceptron = modeling.modeling_MLP(best_param)
+            elif model == "LSTM":
+                Preceptron = modeling.modeling_LSTM_MLP(best_param)
 
-        print("Trained the model.")
-    else:
-        # load trained Model
-        Preceptron = keras.models.load_model(f'./result/task_{model}.hdf5')
+            # # merge all available data set
+            # train_first_sentences_vec_all = np.vstack(
+            #     (train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec,
+            #      train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec))
+            # train_second_sentences_vec_all = np.vstack(
+            #     (train_second_sentences_vec, dev_second_sentences_vec, test_second_sentences_vec,
+            #      train_first_sentences_vec, dev_first_sentences_vec, test_first_sentences_vec))
+            # train_scores_all = np.hstack((train_scores, dev_scores, test_scores,
+            #                               train_scores, dev_scores, test_scores))
+            #
+            # # train the model and observe the mean squared error on the development set
+            # Preceptron.fit([train_first_sentences_vec_all, train_second_sentences_vec_all], train_scores_all,
+            #                validation_data=([train_first_sentences_vec, train_second_sentences_vec], train_scores),
+            #                batch_size=30, epochs=300, verbose=0,
+            #                callbacks=[stop, save])
 
-    # evaluate the model on the test set
-    res = Preceptron.evaluate([test_first_sentences_vec, test_second_sentences_vec], test_scores)
+            # train the model and observe the mean squared error on the development set
+            Preceptron.fit([train_first_sentences_vec, train_second_sentences_vec], train_scores,
+                           validation_data=([dev_first_sentences_vec, dev_second_sentences_vec], dev_scores),
+                           batch_size=30, epochs=300, verbose=0,
+                           callbacks=[stop, save])
 
-    # predict the test data set of scoreboard
-    pre_part_1 = Preceptron.predict([val_first_sentences_vec, val_second_sentences_vec])
-    pre_part_2 = Preceptron.predict([val_second_sentences_vec, val_first_sentences_vec])
+            print("Trained the model.")
+        else:
+            # load trained Model
+            Preceptron = keras.models.load_model(f'./result/task_{model}.hdf5')
 
-    pre = (pre_part_1 + pre_part_2)/2
+        # evaluate the model on the test set
+        res = Preceptron.evaluate([test_first_sentences_vec, test_second_sentences_vec], test_scores)
+
+        res_list.append(res[1])
+
+        pre_test = Preceptron.predict([test_first_sentences_vec, test_second_sentences_vec])
+        pre = Preceptron.predict([val_first_sentences_vec, val_second_sentences_vec])
+
+        pre_list.append(pre)
+
+        # calculate spearman's ranking
+        spr = spearmanr(test_scores, pre_test).correlation
+        print(f"Spearman's rank correlation coefficient is:{spr}")
+
+        spr_list.append(spr)
+
+        # release memory
+        keras.backend.clear_session()
+
+    record.save_params(f'params_list_{model}', params_list)
+    record.save_params(f'param_best_{model}', best_parameter_list)
+    record.save_params(f'pre_all_{model}', pre_list)
+    record.save_params(f'res_all_{model}', res_list)
+
+    index = np.flatnonzero(res_list == sorted(res_list)[0])
+    pre_res = pre_list[int(index)]
+
+    index_spr = np.flatnonzero(spr_list == sorted(spr_list)[-1])
+    pre_spr = pre_list[int(index_spr)]
 
     # save the prediction of unlabeled data
-    record.score_writer('result/scores.txt', pre.reshape(-1).tolist())
+    record.score_writer('result/scores.txt', pre_spr.reshape(-1).tolist())
+

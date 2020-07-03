@@ -39,7 +39,7 @@ def modeling_MLP(hyperparameter: dict):
     print("Defined the model.")
 
     # compile the model
-    model.compile(optimizer='adam', loss=keras.losses.mean_squared_logarithmic_error,
+    model.compile(optimizer='adam', loss=keras.losses.mean_squared_error,
                   metrics=[keras.metrics.mean_squared_error])
     print("Compiled the model.")
 
