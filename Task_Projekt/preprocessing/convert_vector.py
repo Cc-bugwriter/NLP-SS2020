@@ -33,7 +33,6 @@ def load_vectors(size=40000, filename="./wiki-news-300d-1M.vec"):
 def aver_sentence(data: dict, tokens):
     """
     implement a function that embeds each sentence as the average of the embeddings of its tokens
-
     :param data: [dict], wiki-news-300d-1M dataset
     :param tokens: [list]
     :return: the average of the embeddings of its tokens: value_aver
@@ -71,7 +70,7 @@ def get_sentences_vector(data: dict, sentences: list):
 
 def get_pretrained_embeddings(size=80000, filename="./wiki-news-300d-1M.vec"):
     """
-    xxxxx
+    return an embedding matrix and the dict of word position in embedding
     """
     embedding_dimension = 300
     with open(filename, 'r', encoding='utf-8', newline='\n') as file:
@@ -105,7 +104,7 @@ def get_pretrained_embeddings(size=80000, filename="./wiki-news-300d-1M.vec"):
 
 def pad_sentence(sentences, word_to_embedding, max_sentence_length=56):
     """
-    xxxx
+    Truncate or fill multiple sequences to the same length
     """
     data_index = [[word_to_embedding.get(word, 1) for word in sentence] for sentence in sentences]
     padded_data = keras.preprocessing.sequence.pad_sequences(data_index, maxlen=max_sentence_length)

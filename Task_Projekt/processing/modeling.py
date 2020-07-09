@@ -58,10 +58,10 @@ def modeling_LSTM_MLP(hyperparameter: dict):
     max_sentence_length = 56
 
     embedding_layer = keras.layers.Embedding(len(embedding_matrix),
-                                                len(embedding_matrix[0]),
-                                                weights=[embedding_matrix],
-                                                input_length=max_sentence_length,
-                                                trainable=False)
+                                             len(embedding_matrix[0]),
+                                             weights=[embedding_matrix],
+                                             input_length=max_sentence_length,
+                                             trainable=False)
 
     lstm_layer = keras.layers.LSTM(300)
 

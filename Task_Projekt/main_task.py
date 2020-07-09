@@ -109,8 +109,8 @@ def opimazation(model, search_size, max_deep, random_add):
     """
     use random search to find the best hyper parameter
     param: model, [str], the model of estimator
-    param: search_size, [int], xxx
-    param: max_deep, [int], xxx
+    param: search_size, [int], sizes of random search
+    param: max_deep, [int], max hidden layer size
     return params, [list], list of searched hyper parameters
     """
     # assign activation function candidate
@@ -285,4 +285,10 @@ if __name__ == '__main__':
 
     # save the prediction of unlabeled data
     record.score_writer('result/scores.txt', pre_spr.reshape(-1).tolist())
+
+    # # check params for report
+    # params_list = record.load_params(f'params_list_{model}')
+    # best_parameter_list = record.load_params(f'param_best_{model}')
+    # pre_list = record.load_params(f'pre_all_{model}')
+    # res_list = record.load_params(f'res_all_{model}')
 

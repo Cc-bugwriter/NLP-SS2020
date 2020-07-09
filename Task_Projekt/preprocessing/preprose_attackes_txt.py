@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 def get_unattacked_sentences(sentences):
     """
-    xxxx
+    inverse adversarial attack
     """
     # load the unicode descriptions into a single dataframe with the chars as indices
     descs = pd.read_csv('./DATA/NamesList.txt', skiprows=np.arange(16), header=None, names=['code', 'description'],
@@ -20,13 +20,12 @@ def get_unattacked_sentences(sentences):
 
     def get_unattacked_char(ch):
         """
-        xxxx
+        get unattacked  character, which bases on ASCII
         """
         def char_to_hex_string(ch):
             """
-            xxxx
+            retrieving the variations of a character
             """
-            # function for retrieving the variations of a character
             return '{:04x}'.format(ord(ch)).upper()
 
         # get unicode number for c
