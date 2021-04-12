@@ -181,7 +181,7 @@ def opimazation(model, search_size, max_deep, random_add):
 
 if __name__ == '__main__':
     # params_space (controller)
-    fast = True
+    fast = False
     model = "MLP"
     search_size = 40
     max_deep = 3
